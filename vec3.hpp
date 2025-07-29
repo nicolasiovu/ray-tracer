@@ -49,6 +49,11 @@ class Vec3 {
 		static Vec3 random(double min, double max) {
 			return Vec3(random_double(min, max), random_double(min, max), random_double(min, max));
 		}
+
+		bool near_zero() const {
+			auto s = 1e-8;
+			return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+		}
 };
 
 using Point3 = Vec3;
@@ -63,6 +68,10 @@ inline Vec3 operator+(const Vec3& u, const Vec3& v) {
 
 inline Vec3 operator-(const Vec3& u, const Vec3& v) {
 	return Vec3(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
+}
+
+inline Vec3 operator*(const Vec3& u, const Vec3& v) {
+	return Vec3(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
 }
 
 inline Vec3 operator*(double t, const Vec3& v) {
@@ -107,6 +116,10 @@ inline Vec3 random_on_hemisphere(const Vec3& normal) {
 		return on_unit_sphere;
 	}
 	return -on_unit_sphere;
+}
+
+inline Vec3 reflect(const Vec3& v, const Vec3& n) {
+	return v - 2 * dot(v, n) * n;
 }
 
 #endif

@@ -11,6 +11,14 @@ class Camera {
 		int samples_per_pixel = 10;
 		int max_depth = 10;
 
+		double vfov = 90;
+		Point3 lookfrom = Point3(0, 0, 0);
+		Point3 lookat = Point3(0, 0, -1);
+		Vec3 vup = Vec3(0, 1, 0);
+		
+		double defocus_angle = 0;
+		double focus_distance = 10;
+
 		void render(const Hittable& world) {
 			initialize();
 
@@ -38,6 +46,9 @@ class Camera {
 		Point3 pixel00_loc;
 		Vec3 pixel_delta_u;
 		Vec3 pixel_delta_v;
+		Vec3 u, v, w;
+		Vec3 defocus_disk_u;
+		Vec3 defocus_disk_v;
 
 		void initialize() {
 			image_height = int(image_width / aspect_ratio);
@@ -45,27 +56,36 @@ class Camera {
 			
 			pixel_samples_scale = 1.0 / samples_per_pixel;
 
-			center = Point3(0, 0, 0);
+			center = lookfrom;
 
-			double focal_length = 1.0;
-			double viewport_height = 2.0;
+			auto theta = degrees_to_radians(vfov);
+			auto h = std::tan(theta / 2);
+			double viewport_height = 2 * h * focus_distance;
 			double viewport_width = viewport_height * (double(image_width) / image_height);
+			
+			w = unit_vector(lookfrom - lookat);
+			u = unit_vector(cross(vup, w));
+			v = cross(w, u);
 
-			Vec3 viewport_u = Vec3(viewport_width, 0, 0);
-			Vec3 viewport_v = Vec3(0, -viewport_height, 0);
+			Vec3 viewport_u = viewport_width * u;
+			Vec3 viewport_v = viewport_height * -v;
 
 			pixel_delta_u = viewport_u / image_width;
 			pixel_delta_v = viewport_v / image_height;
 
-			Point3 viewport_upper_left = center - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+			Point3 viewport_upper_left = center - (focus_distance * w) - viewport_u / 2 - viewport_v / 2;
 			pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+			auto defocus_radius = focus_distance * std::tan(degrees_to_radians(defocus_angle / 2));
+			defocus_disk_u = u * defocus_radius;
+			defocus_disk_v = v * defocus_radius;
 		}
 
 		Ray get_ray(int i, int j) const {
 			Vec3 offset = sample_square();
 			Point3 pixel_sample = pixel00_loc + ((i + offset.x()) * pixel_delta_u) + ((j + offset.y()) * pixel_delta_v);
 
-			Point3 ray_origin = center;
+			Point3 ray_origin = defocus_angle <= 0 ? center: defocus_disk_sample();
 			Vec3 ray_direction = pixel_sample - ray_origin;
 
 			return Ray(ray_origin, ray_direction);
@@ -73,6 +93,11 @@ class Camera {
 
 		Vec3 sample_square() const {
 			return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
+		}
+
+		Point3 defocus_disk_sample() const {
+			auto p = random_in_unit_disk();
+			return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
 		}
 
 		Color ray_color(const Ray& r, const Hittable& world, int depth) const {

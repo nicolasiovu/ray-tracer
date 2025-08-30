@@ -9,6 +9,11 @@ class Interval {
 
 		Interval(double min, double max) : min(min), max(max) {}
 
+		Interval(const Interval& a, const Interval&b) {
+			min = a.min <= b.min ? a.min: b.min;
+			max = a.max >= b.max ? a.max: b.max;
+		}
+
 		double size() const {
 			return max - min;
 		}
@@ -19,6 +24,11 @@ class Interval {
 
 		bool surrounds(double x) const {
 			return min < x && x < max;
+		}
+
+		Interval expand(double delta) const {
+			double padding = delta / 2;
+			return Interval(min - padding, max + padding);	
 		}
 
 		double clamp(double x) const {

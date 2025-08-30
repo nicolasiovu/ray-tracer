@@ -22,6 +22,8 @@ class Hittable {
 		virtual ~Hittable() = default;
 
 		virtual bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const = 0;
+		
+		virtual BoundingBox bounding_box() const = 0;
 };
 
 #endif

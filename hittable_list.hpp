@@ -2,6 +2,7 @@
 #define HITTABLE_LIST_H
 
 #include "hittable.hpp"
+#include "boundingbox.hpp"
 #include <vector>
 
 class HittableList : public Hittable {
@@ -15,6 +16,7 @@ class HittableList : public Hittable {
 
 		void add(std::shared_ptr<Hittable> object) {
 			objects.push_back(object);
+			bbox = BoundingBox(bbox, object->bounding_box());
 		}
 
 		bool hit(const Ray& r, Interval ray_t, HitRecord& rec) const override {
@@ -32,6 +34,13 @@ class HittableList : public Hittable {
 
 			return hit_anything;
 		}
+
+		BoundingBox bounding_box() const override {
+			return bbox;
+		}
+
+	private:
+		BoundingBox bbox;
 };
 
 #endif

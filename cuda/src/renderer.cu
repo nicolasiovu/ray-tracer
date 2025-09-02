@@ -145,7 +145,7 @@ void render_with_camera(uint32_t *pixels, int width, int height, const Interacti
     
     // Render parameters
     // Higher SPP for high quality, but very slow
-    const int samples_per_pixel = 10; 
+    const int samples_per_pixel = 12; 
     const int max_depth = 10;
     
     // Allocate device memory for pixels

@@ -35,7 +35,7 @@ public:
                      Vec3 up = Vec3(0.0f, 1.0f, 0.0f),
                      float yaw = -90.0f, float pitch = 0.0f)
         : position(pos), world_up(up), yaw(yaw), pitch(pitch),
-          fov(45.0f), aspect_ratio(16.0f/9.0f), aperture(0.1f), focus_distance(4.0f),
+          fov(45.0f), aspect_ratio(16.0f/9.0f), aperture(0.0f), focus_distance(4.0f),
           movement_speed(2.5f), mouse_sensitivity(0.1f), first_mouse(true),
           last_x(400.0f), last_y(300.0f), mouse_captured(false)
     {
@@ -82,8 +82,23 @@ public:
             fov = fmaxf(1.0f, fov - 30.0f * delta_time);  // Zoom in
         }
         if (keys[SDL_SCANCODE_MINUS] || keys[SDL_SCANCODE_KP_MINUS]) {
-            fov = fminf(45.0f, fov + 30.0f * delta_time);  // Zoom out
+            fov = fminf(90.0f, fov + 30.0f * delta_time);  // Zoom out
         }
+
+        if (keys[SDL_SCANCODE_UP]) {
+            aperture = fminf(1.0f, aperture + 0.01f * delta_time * 10.0f); 
+        }
+        if (keys[SDL_SCANCODE_DOWN]) {
+            aperture = fmaxf(0.0f, aperture - 0.01f * delta_time * 10.0f); 
+        }
+        
+        if (keys[SDL_SCANCODE_RIGHT]) {
+            focus_distance = fminf(100.0f, focus_distance + 0.1f * delta_time * 10.0f);
+        }
+        if (keys[SDL_SCANCODE_LEFT]) {
+            focus_distance = fmaxf(0.1f, focus_distance - 0.1f * delta_time * 10.0f);
+        }
+
     }
     
     void handle_event(const SDL_Event& event) {
@@ -158,8 +173,8 @@ public:
     std::string get_info_string() const {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), 
-            "Pos: (%.1f, %.1f, %.1f) | Yaw: %.1f | Pitch: %.1f | FOV: %.1f",
-            position.x, position.y, position.z, yaw, pitch, fov);
+            "Pos: (%.1f, %.1f, %.1f) | Yaw: %.1f | Pitch: %.1f | FOV: %.1f | Aperture: %.4f | Focus Dist: %.1f",
+            position.x, position.y, position.z, yaw, pitch, fov, aperture, focus_distance);
         return std::string(buffer);
     }
     

@@ -141,6 +141,20 @@ public:
                 }
         }
     }
+
+    // Calculate front vector from Euler angles
+    void update_camera_vectors() {
+        // Calculate the new front vector
+        Vec3 new_front;
+        new_front.x = cos(yaw * PI / 180.0f) * cos(pitch * PI / 180.0f);
+        new_front.y = sin(pitch * PI / 180.0f);
+        new_front.z = sin(yaw * PI / 180.0f) * cos(pitch * PI / 180.0f);
+        front = new_front.unit_vector();
+        
+        // Also re-calculate the right and up vector
+        right = front.cross(world_up).unit_vector();
+        up = right.cross(front).unit_vector();
+    }
     
     Camera to_cuda_camera() const {
         Camera cam;
@@ -176,20 +190,5 @@ public:
             "Pos: (%.1f, %.1f, %.1f) | Yaw: %.1f | Pitch: %.1f | FOV: %.1f | Aperture: %.4f | Focus Dist: %.1f",
             position.x, position.y, position.z, yaw, pitch, fov, aperture, focus_distance);
         return std::string(buffer);
-    }
-    
-private:
-    // Calculate front vector from Euler angles
-    void update_camera_vectors() {
-        // Calculate the new front vector
-        Vec3 new_front;
-        new_front.x = cos(yaw * PI / 180.0f) * cos(pitch * PI / 180.0f);
-        new_front.y = sin(pitch * PI / 180.0f);
-        new_front.z = sin(yaw * PI / 180.0f) * cos(pitch * PI / 180.0f);
-        front = new_front.unit_vector();
-        
-        // Also re-calculate the right and up vector
-        right = front.cross(world_up).unit_vector();
-        up = right.cross(front).unit_vector();
     }
 };

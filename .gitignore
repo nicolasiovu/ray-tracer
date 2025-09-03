@@ -1,1 +1,2 @@
-cuda/build/
+cuda/src/build/
+.vscode/

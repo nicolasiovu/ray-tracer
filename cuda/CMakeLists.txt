@@ -9,8 +9,9 @@ option(BUILD_SERVER "Build CUDA server" ON)
 option(BUILD_CLIENT "Build client" ON)
 option(BUILD_LOCAL "Build local raytracer" ON)
 
-# Find SDL2 via vcpkg (required for all builds)
+# Find required packages
 find_package(SDL2 CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)  # Note: lowercase 'zstd' for vcpkg
 
 # Common source files (non-CUDA)
 set(COMMON_SOURCES
@@ -43,6 +44,7 @@ if(BUILD_SERVER)
         SDL2::SDL2
         CUDA::cudart
         CUDA::curand
+        $<IF:$<TARGET_EXISTS:zstd::libzstd_shared>,zstd::libzstd_shared,zstd::libzstd_static>
     )
     
     # Add include directories for server
@@ -74,6 +76,7 @@ if(BUILD_CLIENT)
     target_link_libraries(raytracer-client PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
+        $<IF:$<TARGET_EXISTS:zstd::libzstd_shared>,zstd::libzstd_shared,zstd::libzstd_static>
     )
     
     # Add include directories for client

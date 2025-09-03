@@ -179,8 +179,10 @@ public:
     
     bool receive_frame_from_server() {
         MessageHeader header;
+        static std::vector<char> compressed_buffer;
+        compressed_buffer.resize(PIXEL_BUFFER_SIZE); // Max possible size
         
-        if (!NetworkUtils::recv_message(client_socket, header, pixel_buffer, PIXEL_BUFFER_SIZE)) {
+        if (!NetworkUtils::recv_message(client_socket, header, compressed_buffer.data(), compressed_buffer.size())) {
             return false;
         }
         
@@ -189,8 +191,10 @@ public:
             return false;
         }
         
-        if (header.size != PIXEL_BUFFER_SIZE) {
-            std::cerr << "Invalid frame size: " << header.size << std::endl;
+        // Decompress the received data
+        if (!NetworkUtils::decompress_data(compressed_buffer.data(), header.size, 
+                                         pixel_buffer, PIXEL_BUFFER_SIZE)) {
+            std::cerr << "Failed to decompress frame data" << std::endl;
             return false;
         }
         

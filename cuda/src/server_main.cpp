@@ -280,9 +280,16 @@ public:
             // Render frame
             render_with_camera(pixel_buffer, WIDTH, HEIGHT, camera);
             
-            // Send frame to client
+            // Compress and send frame to client
+            static std::vector<char> compressed_buffer;
+            if (!NetworkUtils::compress_data(pixel_buffer, PIXEL_BUFFER_SIZE, compressed_buffer)) {
+                std::cerr << "Failed to compress frame data" << std::endl;
+                continue;
+            }
+            
+            // Send compressed frame to client
             if (!NetworkUtils::send_message(client_socket, MSG_FRAME_DATA, 
-                                          pixel_buffer, PIXEL_BUFFER_SIZE)) {
+                                          compressed_buffer.data(), compressed_buffer.size())) {
                 std::cerr << "Failed to send frame data, client likely disconnected" << std::endl;
                 running = false;
                 continue;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <zstd.h>
+#include <vector>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -95,6 +97,14 @@ struct CameraState {
 
 // Network utility functions
 class NetworkUtils {
+private:
+    static const int COMPRESSION_LEVEL = 3;  // Balance between speed and compression
+    static std::vector<char> compression_buffer;  // Reusable buffer for compression
+
+public:
+    // Helper function to get compression bound
+    static size_t get_compress_bound(size_t size) { return ZSTD_compressBound(size); }
+
 public:
     static bool initialize_networking();
     static void cleanup_networking();
@@ -103,4 +113,8 @@ public:
     static bool recv_all(SOCKET sock, void* data, size_t size);
     static bool send_message(SOCKET sock, MessageType type, const void* data, uint32_t size);
     static bool recv_message(SOCKET sock, MessageHeader& header, void* data, uint32_t max_size);
+    
+    // New compression methods
+    static bool compress_data(const void* src, size_t src_size, std::vector<char>& dst);
+    static bool decompress_data(const void* src, size_t src_size, void* dst, size_t dst_size);
 };

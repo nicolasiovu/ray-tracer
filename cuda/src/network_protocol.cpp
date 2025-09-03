@@ -1,6 +1,9 @@
 #include "network_protocol.hpp"
 #include <iostream>
 
+// Initialize static members
+std::vector<char> NetworkUtils::compression_buffer;
+
 bool NetworkUtils::initialize_networking() {
 #ifdef _WIN32
     WSADATA wsaData;
@@ -9,8 +12,12 @@ bool NetworkUtils::initialize_networking() {
         std::cerr << "WSAStartup failed: " << result << std::endl;
         return false;
     }
+    
+    // Initialize compression buffer with a reasonable initial size
+    compression_buffer.resize(get_compress_bound(PIXEL_BUFFER_SIZE));
     return true;
 #else
+    compression_buffer.resize(get_compress_bound(PIXEL_BUFFER_SIZE));
     return true; // No initialization needed on Unix
 #endif
 }
@@ -111,6 +118,48 @@ bool NetworkUtils::recv_message(SOCKET sock, MessageHeader& header, void* data, 
         if (!recv_all(sock, data, header.size)) {
             return false;
         }
+    }
+    
+    return true;
+}
+
+bool NetworkUtils::compress_data(const void* src, size_t src_size, std::vector<char>& dst) {
+    // Ensure the destination buffer is large enough
+    size_t const max_dst_size = get_compress_bound(src_size);
+    dst.resize(max_dst_size);
+    
+    // Compress the data
+    size_t const compressed_size = ZSTD_compress(
+        dst.data(), max_dst_size,
+        src, src_size,
+        COMPRESSION_LEVEL
+    );
+    
+    if (ZSTD_isError(compressed_size)) {
+        std::cerr << "Compression error: " << ZSTD_getErrorName(compressed_size) << std::endl;
+        return false;
+    }
+    
+    // Resize buffer to actual compressed size
+    dst.resize(compressed_size);
+    return true;
+}
+
+bool NetworkUtils::decompress_data(const void* src, size_t src_size, void* dst, size_t dst_size) {
+    size_t const decompressed_size = ZSTD_decompress(
+        dst, dst_size,
+        src, src_size
+    );
+    
+    if (ZSTD_isError(decompressed_size)) {
+        std::cerr << "Decompression error: " << ZSTD_getErrorName(decompressed_size) << std::endl;
+        return false;
+    }
+    
+    if (decompressed_size != dst_size) {
+        std::cerr << "Decompressed size mismatch. Expected " << dst_size 
+                  << " but got " << decompressed_size << std::endl;
+        return false;
     }
     
     return true;

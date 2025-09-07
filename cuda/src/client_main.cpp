@@ -5,6 +5,11 @@
 #include <string>
 #include "network_protocol.hpp"
 
+// Define SDL_NUM_SCANCODES if not available
+#ifndef SDL_NUM_SCANCODES
+#define SDL_NUM_SCANCODES 512
+#endif
+
 class RayTracerClient {
 private:
     SOCKET client_socket;

@@ -12,7 +12,7 @@ Additionally, you will need the Visual Studio Build Tools for C/C++ development.
 
 The CMakeLists options are as follows:
 
-- `DBBUILD_SERVER`: Builds the server executable
+- `DBUILD_SERVER`: Builds the server executable
 - `DBUILD_CLIENT`: Builds the client executable
 - `DBUILD_LOCAL`: Builds the local executable (recommended)
 
